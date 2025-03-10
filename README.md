@@ -169,4 +169,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Thanks to the PyQt6 and Flask communities for their excellent documentation.
 - Inspired by the need to automate repetitive tasks in competitive programming.
 ```
----
