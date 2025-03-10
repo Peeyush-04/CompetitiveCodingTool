@@ -156,12 +156,6 @@ Through this project, I have gained the following skills and knowledge:
 - **Git/GitHub**: Version control and repository hosting.
 - **Chrome Extension APIs**: For browser integration.
 
-## Future Improvements
-- Add support for more competitive programming platforms (e.g., LeetCode, AtCoder).
-- Implement a feature to save and load folder paths for quicker reuse.
-- Enhance the GUI with additional customization options (e.g., themes, font sizes).
-- Add error logging to a file for better debugging in the packaged app.
-
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
