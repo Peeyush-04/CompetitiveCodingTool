@@ -259,7 +259,6 @@ class GeneratorApp(QMainWindow):
         # Determine contest id, platform, and problems list.
         if isinstance(problems_data, dict) and "contestId" in problems_data:
             contest_id = problems_data["contestId"]
-            # If problems_data includes a "platform" key, use it; otherwise default to Codeforces.
             platform = problems_data.get("platform", "Codeforces")
             problems = problems_data["problems"]
         else:
@@ -267,7 +266,7 @@ class GeneratorApp(QMainWindow):
             platform = "Codeforces"
             problems = problems_data
 
-        # Create contest folder like "<platform>_<contestId>"
+        # Create contest folder named "<platform>_<contestId>"
         contest_folder = os.path.join(folder, f"{platform}_{contest_id}")
         try:
             os.makedirs(contest_folder, exist_ok=True)
@@ -304,7 +303,7 @@ class GeneratorApp(QMainWindow):
             QMessageBox.critical(self, "Error", f"Cannot write README: {str(e)}")
             return
 
-        # Load language template. Templates folder should contain template files for C++, Python, and Java.
+        # Load language template.
         templates_dir = os.path.join(os.path.dirname(__file__), "templates")
         if not os.path.exists(templates_dir):
             templates_dir = os.path.join(sys._MEIPASS, "templates") if hasattr(sys, '_MEIPASS') else os.path.join(os.path.dirname(__file__), "templates")
@@ -326,8 +325,12 @@ class GeneratorApp(QMainWindow):
         if not os.path.exists(template_path):
             QMessageBox.critical(self, "Error", f"Template file {template_file} not found in templates/")
             return
-        with open(template_path, "r") as f:
-            template_content = f.read()
+        try:
+            with open(template_path, "r") as f:
+                template_content = f.read()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error reading template file: {str(e)}")
+            return
 
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -348,7 +351,10 @@ class GeneratorApp(QMainWindow):
             content = content.replace("${TASK}", letter)
             content = content.replace("${LANGUAGE}", language)
             content = content.replace("${T}", str(len(samples)))
-            file_name = "solution" + ext
+            if language == "Java":
+                file_name = "Main" + ext  # Use Main.java for Java
+            else:
+                file_name = "solution" + ext
             file_path = os.path.join(problem_folder, file_name)
             try:
                 with open(file_path, "w") as f:
@@ -375,8 +381,6 @@ class GeneratorApp(QMainWindow):
 
         QMessageBox.information(self, "Success", f"Files generated successfully in {contest_folder}")
         problems_data = None
-
-
 
 
 if __name__ == "__main__":
