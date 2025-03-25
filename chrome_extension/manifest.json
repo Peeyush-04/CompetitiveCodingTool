@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Competitive Coding Helper",
-  "version": "1.0",
+  "version": "1.2",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": [
     "https://codeforces.com/*",
-    "https://atcoder.jp/*"
+    "https://atcoder.jp/*",
+    "http://localhost:5000/*"
   ],
   "action": {
     "default_popup": "popup.html"
