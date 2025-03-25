@@ -250,20 +250,61 @@ class GeneratorApp(QMainWindow):
             return
 
         if not problems_data:
-            QMessageBox.critical(self, "Error", "No problems data received. Ensure you are on a Codeforces problem page and the extension is working.")
+            QMessageBox.critical(self, "Error", "No problems data received. Ensure the extension is working.")
             return
 
-        # Save username
+        # Save username for future use
         self.save_username(username)
 
-        problems = problems_data
+        # Determine contest id, platform, and problems list.
+        if isinstance(problems_data, dict) and "contestId" in problems_data:
+            contest_id = problems_data["contestId"]
+            # If problems_data includes a "platform" key, use it; otherwise default to Codeforces.
+            platform = problems_data.get("platform", "Codeforces")
+            problems = problems_data["problems"]
+        else:
+            contest_id = "Unknown"
+            platform = "Codeforces"
+            problems = problems_data
 
+        # Create contest folder like "<platform>_<contestId>"
+        contest_folder = os.path.join(folder, f"{platform}_{contest_id}")
         try:
-            os.makedirs(folder, exist_ok=True)
+            os.makedirs(contest_folder, exist_ok=True)
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Cannot create folder: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Cannot create contest folder: {str(e)}")
             return
 
+        # Create a README in the contest folder listing contest info and problems
+        readme_lines = []
+        readme_lines.append(f"# {platform} Contest {contest_id}")
+        readme_lines.append("")
+        readme_lines.append(f"Platform: {platform}")
+        readme_lines.append(f"Contest ID: {contest_id}")
+        if platform.lower() == "codeforces":
+            readme_lines.append(f"URL: https://codeforces.com/contest/{contest_id}")
+        elif platform.lower() == "atcoder":
+            readme_lines.append(f"URL: https://atcoder.jp/contests/{contest_id}")
+        readme_lines.append("")
+        readme_lines.append("## Problems")
+        readme_lines.append("")
+        for prob in problems:
+            letter = prob.get("letter", "Unknown")
+            samples = prob.get("samples", [])
+            readme_lines.append(f"### Problem {letter}")
+            readme_lines.append(f"- URL: (Not available via generator)")
+            readme_lines.append(f"- Test Cases: {len(samples)}")
+            readme_lines.append("")
+        readme_content = "\n".join(readme_lines)
+        readme_path = os.path.join(contest_folder, "README.md")
+        try:
+            with open(readme_path, "w") as f:
+                f.write(readme_content)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Cannot write README: {str(e)}")
+            return
+
+        # Load language template. Templates folder should contain template files for C++, Python, and Java.
         templates_dir = os.path.join(os.path.dirname(__file__), "templates")
         if not os.path.exists(templates_dir):
             templates_dir = os.path.join(sys._MEIPASS, "templates") if hasattr(sys, '_MEIPASS') else os.path.join(os.path.dirname(__file__), "templates")
@@ -274,9 +315,8 @@ class GeneratorApp(QMainWindow):
         templates = {
             "C++": ("template.cpp", ".cc"),
             "Python": ("template.py", ".py"),
-            "Java": ("template.java", ".java")
+            "Java": ("Main.java", ".java")
         }
-
         if language not in templates:
             QMessageBox.critical(self, "Error", f"Unsupported language: {language}")
             return
@@ -286,42 +326,58 @@ class GeneratorApp(QMainWindow):
         if not os.path.exists(template_path):
             QMessageBox.critical(self, "Error", f"Template file {template_file} not found in templates/")
             return
-
         with open(template_path, "r") as f:
             template_content = f.read()
 
-        now = datetime.datetime.now().strftime("%Y-%m-d %H:%M:%S")
-        for problem in problems:
-            letter = problem["letter"]
-            samples = problem["samples"]
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            content = template_content.replace("[USERNAME]", username)
-            content = content.replace("[TASK]", letter)
-            content = content.replace("[LANGUAGE]", language)
-            content = content.replace("[DATETIME]", now)
+        # For each problem, create a subfolder and generate solution and test files.
+        for prob in problems:
+            letter = prob.get("letter", "Unknown")
+            samples = prob.get("samples", [])
+            # Create problem folder: "Problem_<letter>"
+            problem_folder = os.path.join(contest_folder, f"Problem_{letter}")
+            try:
+                os.makedirs(problem_folder, exist_ok=True)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Cannot create problem folder for {letter}: {str(e)}")
+                continue
 
-            file_name = f"{letter.lower()}{ext}" if language != "Java" else f"{letter}{ext}"
-            file_path = os.path.join(folder, file_name)
-            
-            with open(file_path, "w") as f:
-                f.write(content)
+            # Generate solution file using the template.
+            content = template_content.replace("${USERNAME}", username)
+            content = content.replace("${TASK}", letter)
+            content = content.replace("${LANGUAGE}", language)
+            content = content.replace("${T}", str(len(samples)))
+            file_name = "solution" + ext
+            file_path = os.path.join(problem_folder, file_name)
+            try:
+                with open(file_path, "w") as f:
+                    f.write(content)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Cannot write solution file for {letter}: {str(e)}")
+                continue
 
-            if language == "C++":
-                debug_src = os.path.join(templates_dir, "debug.h")
-                debug_dst = os.path.join(folder, "debug.h")
-                if os.path.exists(debug_src) and not os.path.exists(debug_dst):
-                    shutil.copy(debug_src, debug_dst)
+            # Generate test files: test.in and test-expected.out.
+            test_in_path = os.path.join(problem_folder, "test.in")
+            test_out_path = os.path.join(problem_folder, "test-expected.out")
+            try:
+                with open(test_in_path, "w") as f_in, open(test_out_path, "w") as f_out:
+                    for sample_in, sample_out in samples:
+                        f_in.write(sample_in)
+                        if not sample_in.endswith("\n"):
+                            f_in.write("\n")
+                        f_out.write(sample_out)
+                        if not sample_out.endswith("\n"):
+                            f_out.write("\n")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Cannot write test files for {letter}: {str(e)}")
+                continue
 
-            for i, (sample_in, sample_out) in enumerate(samples, 1):
-                test_in_path = os.path.join(folder, f"test_{letter.lower()}_{i}.in")
-                test_out_path = os.path.join(folder, f"test_{letter.lower()}_{i}.out")
-                with open(test_in_path, "w") as f:
-                    f.write(sample_in)
-                with open(test_out_path, "w") as f:
-                    f.write(sample_out)
-
-        QMessageBox.information(self, "Success", f"Files generated successfully in {folder}")
+        QMessageBox.information(self, "Success", f"Files generated successfully in {contest_folder}")
         problems_data = None
+
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
