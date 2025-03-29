@@ -97,7 +97,25 @@ static Debugger _debugger;
 
 #include <iostream>
 #include <fstream>
-// … (rest of includes)
+#include <algorithm>
+#include <string>
+#include <vector>
+#include <array>
+#include <list>
+#include <stack>
+#include <queue>
+#include <unordered_map>
+#include <map>
+#include <unordered_set>
+#include <set>
+#include <numeric>
+#include <stdint.h>
+#include <cmath>
+#include <climits>
+#include <utility>
+#include <chrono>
+#include <functional>
+#include <random>
 using namespace std;
 
 static istream* pIn = &cin;
@@ -105,6 +123,9 @@ static ostream* pOut = &cout;
 
 #define cin (*pIn)
 #define cout (*pOut)
+#define ll long long
+#define int32 int32_t
+#define int64 int64_t
 
 void setupIO() {
     static ifstream fin("test.in");
