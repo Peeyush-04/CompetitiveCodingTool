@@ -32,9 +32,9 @@ string centeredHeader(const string& text, int width = 60) {
 struct Debugger {
     Debugger() { debug_start = chrono::steady_clock::now(); }
     ~Debugger() {
+        // Do not write debug summary to cmd; write to debug.out instead.
         static istream* pIn;
         if (pIn == &cin) return;
-
         auto end = chrono::steady_clock::now();
         long long time_taken = chrono::duration_cast<chrono::milliseconds>(end - debug_start).count();
 
@@ -53,72 +53,52 @@ struct Debugger {
             if (!t.empty()) expectedLines.push_back(t);
         }
 
-        cerr << "\n" << string(60, '=') << "\n";
-        cerr << centeredHeader("DEBUG SUMMARY") << "\n";
-        cerr << string(60, '=') << "\n\n";
+        ofstream debugFile("debug.out", ios::app);
+        debugFile << "\n" << string(60, '=') << "\n";
+        debugFile << centeredHeader("DEBUG SUMMARY") << "\n";
+        debugFile << string(60, '=') << "\n\n";
 
-        cerr << centeredHeader("OUTPUT") << "\n";
-        for (auto &l : actualLines) cerr << "  " << l << "\n";
-        if (actualLines.empty()) cerr << "  (no output)\n";
-        cerr << "\n";
+        debugFile << centeredHeader("OUTPUT") << "\n";
+        for (auto &l : actualLines) debugFile << "  " << l << "\n";
+        if (actualLines.empty()) debugFile << "  (no output)\n";
+        debugFile << "\n";
 
-        cerr << centeredHeader("EXPECTED OUTPUT") << "\n";
-        for (auto &l : expectedLines) cerr << "  " << l << "\n";
-        if (expectedLines.empty()) cerr << "  (none provided)\n";
-        cerr << "\n";
+        debugFile << centeredHeader("EXPECTED OUTPUT") << "\n";
+        for (auto &l : expectedLines) debugFile << "  " << l << "\n";
+        if (expectedLines.empty()) debugFile << "  (none provided)\n";
+        debugFile << "\n";
 
-        cerr << centeredHeader("COMPARISON") << "\n";
+        debugFile << centeredHeader("COMPARISON") << "\n";
         int total = (int)expectedLines.size(), passed = 0;
         for (int i = 0; i < total; i++) {
             if (i < (int)actualLines.size() && expectedLines[i] == actualLines[i]) passed++;
         }
-        if (total == 0) cerr << "  No expected output provided.\n";
-        else if (passed == total) cerr << " All test cases passed (" << passed << "/" << total << ")\n";
-        else cerr << (total - passed) << " test case(s) failed (" << passed << "/" << total << ")\n";
-        cerr << "\n";
+        if (total == 0) debugFile << "  No expected output provided.\n";
+        else if (passed == total) debugFile << " All test cases passed (" << passed << "/" << total << ")\n";
+        else debugFile << (total - passed) << " test case(s) failed (" << passed << "/" << total << ")\n";
+        debugFile << "\n";
 
-        cerr << centeredHeader("PERFORMANCE") << "\n";
-        cerr << "  Time taken:  " << time_taken << " ms\n";
+        debugFile << centeredHeader("PERFORMANCE") << "\n";
+        debugFile << "  Time taken:  " << time_taken << " ms\n";
         PROCESS_MEMORY_COUNTERS pmc;
         if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
-            cerr << "  Memory used: " << (pmc.WorkingSetSize / 1024) << " KB\n";
+            debugFile << "  Memory used: " << (pmc.WorkingSetSize / 1024) << " KB\n";
         else
-            cerr << "  Memory used: N/A\n";
-        cerr << string(60, '=') << "\n";
+            debugFile << "  Memory used: N/A\n";
+        debugFile << string(60, '=') << "\n";
     }
 };
 static Debugger _debugger;
 #endif
 
+// --------------------
+// Start Solution Section
+// --------------------
+
 #include <iostream>
 #include <fstream>
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <array>
-#include <list>
-#include <stack>
-#include <queue>
-#include <unordered_map>
-#include <map>
-#include <unordered_set>
-#include <set>
-#include <numeric>
-#include <stdint.h>
-#include <cmath>
-#include <climits>
-#include <utility>
-#include <chrono>
-#include <functional>
-#ifdef __linux__
-#include <sys/resource.h>
-#endif
-
+// … (rest of includes)
 using namespace std;
-
-#define int64 int64_t
-#define int32 int32_t
-#define ll long long
 
 static istream* pIn = &cin;
 static ostream* pOut = &cout;
@@ -137,25 +117,17 @@ void setupIO() {
     }
 }
 
-// --------------------
-// Start Solution Section
-// --------------------
-
 int T = ${T};
 
 void solve() {
-    // code here
-    
+    // your solution code here
 }
 
 int32 main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-
     setupIO();
-
     // cin >> T;
     while (T--) solve();
-
     return 0;
 }
