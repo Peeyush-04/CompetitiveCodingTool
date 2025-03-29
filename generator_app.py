@@ -304,7 +304,7 @@ class GeneratorApp(QMainWindow):
             return
 
         # Load language template.
-        templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+        templates_dir = os.path.join(os.path.dirname(__file__), "./templates")
         if not os.path.exists(templates_dir):
             templates_dir = os.path.join(sys._MEIPASS, "templates") if hasattr(sys, '_MEIPASS') else os.path.join(os.path.dirname(__file__), "templates")
         if not os.path.exists(templates_dir):
