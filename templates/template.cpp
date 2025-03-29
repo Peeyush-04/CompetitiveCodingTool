@@ -30,11 +30,10 @@ string centeredHeader(const string& text, int width = 60) {
 }
 
 struct Debugger {
-    Debugger() { debug_start = chrono::steady_clock::now(); }
+    Debugger() { 
+        debug_start = chrono::steady_clock::now(); 
+    }
     ~Debugger() {
-        // Do not write debug summary to cmd; write to debug.out instead.
-        static istream* pIn;
-        if (pIn == &cin) return;
         auto end = chrono::steady_clock::now();
         long long time_taken = chrono::duration_cast<chrono::milliseconds>(end - debug_start).count();
 
@@ -53,39 +52,47 @@ struct Debugger {
             if (!t.empty()) expectedLines.push_back(t);
         }
 
-        ofstream debugFile("debug.out", ios::app);
-        debugFile << "\n" << string(60, '=') << "\n";
-        debugFile << centeredHeader("DEBUG SUMMARY") << "\n";
-        debugFile << string(60, '=') << "\n\n";
+        // Print debug summary directly to the command window (stderr)
+        cerr << "\n" << string(60, '=') << "\n";
+        cerr << centeredHeader("DEBUG SUMMARY") << "\n";
+        cerr << string(60, '=') << "\n\n";
 
-        debugFile << centeredHeader("OUTPUT") << "\n";
-        for (auto &l : actualLines) debugFile << "  " << l << "\n";
-        if (actualLines.empty()) debugFile << "  (no output)\n";
-        debugFile << "\n";
+        cerr << centeredHeader("OUTPUT") << "\n";
+        for (auto &l : actualLines) 
+            cerr << "  " << l << "\n";
+        if (actualLines.empty()) 
+            cerr << "  (no output)\n";
+        cerr << "\n";
 
-        debugFile << centeredHeader("EXPECTED OUTPUT") << "\n";
-        for (auto &l : expectedLines) debugFile << "  " << l << "\n";
-        if (expectedLines.empty()) debugFile << "  (none provided)\n";
-        debugFile << "\n";
+        cerr << centeredHeader("EXPECTED OUTPUT") << "\n";
+        for (auto &l : expectedLines) 
+            cerr << "  " << l << "\n";
+        if (expectedLines.empty()) 
+            cerr << "  (none provided)\n";
+        cerr << "\n";
 
-        debugFile << centeredHeader("COMPARISON") << "\n";
+        cerr << centeredHeader("COMPARISON") << "\n";
         int total = (int)expectedLines.size(), passed = 0;
         for (int i = 0; i < total; i++) {
-            if (i < (int)actualLines.size() && expectedLines[i] == actualLines[i]) passed++;
+            if (i < (int)actualLines.size() && expectedLines[i] == actualLines[i])
+                passed++;
         }
-        if (total == 0) debugFile << "  No expected output provided.\n";
-        else if (passed == total) debugFile << " All test cases passed (" << passed << "/" << total << ")\n";
-        else debugFile << (total - passed) << " test case(s) failed (" << passed << "/" << total << ")\n";
-        debugFile << "\n";
+        if (total == 0)
+            cerr << "  No expected output provided.\n";
+        else if (passed == total)
+            cerr << " All test cases passed (" << passed << "/" << total << ")\n";
+        else 
+            cerr << (total - passed) << " test case(s) failed (" << passed << "/" << total << ")\n";
+        cerr << "\n";
 
-        debugFile << centeredHeader("PERFORMANCE") << "\n";
-        debugFile << "  Time taken:  " << time_taken << " ms\n";
+        cerr << centeredHeader("PERFORMANCE") << "\n";
+        cerr << "  Time taken:  " << time_taken << " ms\n";
         PROCESS_MEMORY_COUNTERS pmc;
         if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
-            debugFile << "  Memory used: " << (pmc.WorkingSetSize / 1024) << " KB\n";
+            cerr << "  Memory used: " << (pmc.WorkingSetSize / 1024) << " KB\n";
         else
-            debugFile << "  Memory used: N/A\n";
-        debugFile << string(60, '=') << "\n";
+            cerr << "  Memory used: N/A\n";
+        cerr << string(60, '=') << "\n";
     }
 };
 static Debugger _debugger;
@@ -142,6 +149,7 @@ int T = ${T};
 
 void solve() {
     // your solution code here
+    
 }
 
 int32 main() {
